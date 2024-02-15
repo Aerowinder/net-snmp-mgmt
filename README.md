@@ -1,3 +1,3 @@
 # net-snmp-mgmt
 
-Automate Net-SNMP related tasks, such as installing and removing related services.
+Automate installation and removal of Net-SNMP. Repo includes my latest compiled version of Net-SNMP and OpenSSL.
