@@ -1,0 +1,78 @@
+@ECHO OFF
+
+REM Variables you will need to change
+SET "ver_openssl=3.3.1"
+SET "ver_netsnmp=5.9.4"
+SET "dir_download=C:\Users\Adam\Downloads"
+
+REM Variables you shouldn't need to change
+SET "vcvars64=C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat"
+SET "nasm=%programfiles%\NASM"
+SET "sperl=C:\Strawberry\perl\bin"
+SET "dir_openssl=C:\Program Files\OpenSSL"
+SET "dir_netsnmp=C:\Program Files\Net-SNMP"
+SET "tar_openssl=%dir_download%\openssl-%ver_openssl%.tar.gz"
+SET "tar_netsnmp=%dir_download%\net-snmp-%ver_netsnmp%.tar.gz"
+SET "file_zip=%dir_download%\netsnmp-%ver_netsnmp%-openssl-%ver_openssl%-win64.zip"
+
+REM Rudimentary error handling
+IF NOT EXIST "%vcvars64%" GOTO :ERROR
+IF NOT EXIST "%nasm%" GOTO :ERROR
+IF NOT EXIST "%sperl%" GOTO :ERROR
+IF NOT EXIST "%tar_openssl%" GOTO :ERROR
+IF NOT EXIST "%tar_netsnmp%" GOTO :ERROR
+
+REM Cleanup previous runs
+IF EXIST "%dir_openssl%" RMDIR /Q /S "%dir_openssl%"
+IF EXIST "%dir_netsnmp%" RMDIR /Q /S "%dir_netsnmp%"
+IF EXIST "%file_zip%" DEL /Q "%file_zip%"
+IF EXIST "%dir_download%\openssl-%ver_openssl%" RMDIR /Q /S "%dir_download%\openssl-%ver_openssl%"
+IF EXIST "%dir_download%\net-snmp-%ver_netsnmp%" RMDIR /Q /S "%dir_download%\net-snmp-%ver_netsnmp%"
+
+
+REM Both
+call "%vcvars64%"
+path=%path%;"%nasm%";"%sperl%"
+
+REM OpenSSL
+cd "%dir_download%"
+tar -xzvf "%tar_openssl%"
+cd "%dir_download%\openssl-%ver_openssl%"
+perl Configure VC-WIN64A
+rem nmake clean
+nmake
+rem nmake test
+nmake install
+
+REM Net-SNMP
+cd "%dir_download%"
+tar -xzvf "%tar_netsnmp%"
+cd "%dir_download%\net-snmp-%ver_netsnmp%\win32"
+set Platform=x64
+set TARGET_CPU=x64
+set INCLUDE=%INCLUDE%;%dir_openssl%\include
+set LIB=%LIB%;%dir_openssl%\lib
+copy "%dir_openssl%\lib\libcrypto.lib" "%dir_openssl%\lib\libcrypto64md.lib"
+copy "%dir_openssl%\lib\libssl.lib" "%dir_openssl%\lib\libssl64md.lib"
+perl Configure --with-sdk --with-winextdll --with-ssl --with-ipv6 --enable-blumenthal-aes --config=release --linktype=static --prefix="%dir_netsnmp%"
+nmake clean
+nmake
+nmake install
+copy "%dir_openssl%\bin\libcrypto-3-x64.dll" "%dir_netsnmp%\bin\libcrypto-3-x64.dll"
+copy "%dir_openssl%\bin\libssl-3-x64.dll" "%dir_netsnmp%\bin\libssl-3-x64.dll"
+
+REM Zip Net-SNMP and place in download folder
+ECHO Creating ZIP file %dir_download%\Net-SNMP %ver_netsnmp% (OpenSSL %ver_openssl%).zip...
+cd "%dir_netsnmp%"
+tar.exe -a -cf "%file_zip%" "*"
+
+GOTO :EOF
+
+:ERROR
+ECHO.
+ECHO ERROR: Please ensure the following directories and files exist:
+ECHO 	* %nasm%
+ECHO 	* %sperl%
+ECHO 	* %tar_openssl%
+ECHO 	* %tar_netsnmp%
+ECHO 	* %vcvars64%
