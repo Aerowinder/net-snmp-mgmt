@@ -22,15 +22,14 @@ IF NOT EXIST "%sperl%" GOTO :ERROR
 IF NOT EXIST "%tar_openssl%" GOTO :ERROR
 IF NOT EXIST "%tar_netsnmp%" GOTO :ERROR
 
-REM Cleanup previous runs
+REM Cleanup previous failed run
 IF EXIST "%dir_openssl%" RMDIR /Q /S "%dir_openssl%"
 IF EXIST "%dir_netsnmp%" RMDIR /Q /S "%dir_netsnmp%"
 IF EXIST "%file_zip%" DEL /Q "%file_zip%"
 IF EXIST "%dir_download%\openssl-%ver_openssl%" RMDIR /Q /S "%dir_download%\openssl-%ver_openssl%"
 IF EXIST "%dir_download%\net-snmp-%ver_netsnmp%" RMDIR /Q /S "%dir_download%\net-snmp-%ver_netsnmp%"
 
-
-REM Both
+REM OpenSSL and Net-SNMP
 call "%vcvars64%"
 path=%path%;"%nasm%";"%sperl%"
 
@@ -39,9 +38,8 @@ cd "%dir_download%"
 tar -xzvf "%tar_openssl%"
 cd "%dir_download%\openssl-%ver_openssl%"
 perl Configure VC-WIN64A
-rem nmake clean
+nmake clean
 nmake
-rem nmake test
 nmake install
 
 REM Net-SNMP
@@ -66,6 +64,13 @@ ECHO Creating ZIP file %dir_download%\Net-SNMP %ver_netsnmp% (OpenSSL %ver_opens
 cd "%dir_netsnmp%"
 tar.exe -a -cf "%file_zip%" "*"
 
+REM Cleanup
+IF EXIST "%dir_openssl%" RMDIR /Q /S "%dir_openssl%"
+IF EXIST "%dir_netsnmp%" RMDIR /Q /S "%dir_netsnmp%"
+IF EXIST "%file_zip%" DEL /Q "%file_zip%"
+IF EXIST "%dir_download%\openssl-%ver_openssl%" RMDIR /Q /S "%dir_download%\openssl-%ver_openssl%"
+IF EXIST "%dir_download%\net-snmp-%ver_netsnmp%" RMDIR /Q /S "%dir_download%\net-snmp-%ver_netsnmp%"
+
 GOTO :EOF
 
 :ERROR
@@ -76,3 +81,6 @@ ECHO 	* %sperl%
 ECHO 	* %tar_openssl%
 ECHO 	* %tar_netsnmp%
 ECHO 	* %vcvars64%
+
+REM Changelog
+REM 2024-07-25 - AS - v1, Initial release.
