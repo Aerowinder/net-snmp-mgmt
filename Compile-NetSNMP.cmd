@@ -1,7 +1,7 @@
 @ECHO OFF
 
 REM Variables you will need to change
-SET "ver_openssl=3.3.1"
+SET "ver_openssl=3.4.0"
 SET "ver_netsnmp=5.9.4"
 SET "dir_download=C:\Users\Adam\Downloads"
 
@@ -86,3 +86,4 @@ ECHO 	* %vcvars64%
 REM Changelog
 REM 2024-07-24 - AS - v1, Initial release.
 REM 2024-07-25 - AS - v2, General improvements.
+REM 2025-02-01 - AS - v3, Updated version strings (OpenSSL 3.4.0)
